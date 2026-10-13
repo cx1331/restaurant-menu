@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block title %}餐厅菜单{% endblock %}
+
+{% block content %}
+    <!-- 按菜名搜索 -->
+    <div class="form-card">
+        <form action="/search" method="get">
+            <input type="text" name="q" placeholder="输入菜名搜索...">
+            <input type="submit" value="搜索">
+        </form>
+    </div>
+
+    <!-- 价格筛选 -->
+     <div class="form-card">
+        <form action="/search_price" method="get">
+            <label>价格范围: </label>
+            <input type="text" name="min" placeholder="最低" size="4"> -
+            <input type="text" name="max" placeholder="最高" size="4">
+            <input type="submit" value="筛选">
+        </form>
+    </div>
+
+    <!-- 菜单列表 -->
+    {% if menus %}
+        <ul>
+            {% for m in menus %}
+                <li>
+                    {{ m['name'] }} - RM{{ "%.2f"|format(m['price']) }}
+                    <a href="/delete/{{ m['id'] }}" class="btn btn-danger">🚮 删除</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+    <p>菜单为空，请添加菜品。</p>
+    {% endif %}
+
+    <br>
+    <a href="/add_form" class="btn">＋ 添加菜品</a>
+{% endblock %}
