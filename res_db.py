@@ -1,67 +1,108 @@
-import sqlite3
 import os
+import sqlite3
+import psycopg2
+import psycopg2.extras
 
-DATABASE = 'menus.db'
+DATABASE_URL = os.environ.get('DATABASE_URL')
+IS_POSTGRES = DATABASE_URL is not None
 
-# ----- 数据库连接 （自动提交、回滚、关闭） -----
 def get_db():
-    conn = sqlite3.connect(DATABASE)
-    conn.row_factory = sqlite3.Row
-    return conn
+    if IS_POSTGRES:
+        # 云端使用 PostgreSQL
+        return psycopg2.connect(DATABASE_URL)
+    else:
+        # 本地使用 SQLite
+        conn = sqlite3.connect('menus.db')
+        conn.row_factory = sqlite3.Row
+        return conn
 
-# ----- 初始化表 -----
 def init_db():
     conn = get_db()
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS menus (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            price REAL NOT NULL
-        )
-    ''')
+    cursor = conn.cursor()
+    
+    if IS_POSTGRES:
+        create_sql = '''
+            CREATE TABLE IF NOT EXISTS menus (
+                id SERIAL PRIMARY KEY,
+                name TEXT NOT NULL,
+                price REAL NOT NULL
+            )
+        '''
+    else:
+        create_sql = '''
+            CREATE TABLE IF NOT EXISTS menus (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                price REAL NOT NULL
+            )
+        '''
+    cursor.execute(create_sql)
     conn.commit()
+    cursor.close()
     conn.close()
 
-# ----- 加载所有菜单 -----
 def load_menus():
     conn = get_db()
-    rows = conn.execute('SELECT * FROM menus ORDER BY id').fetchall()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM menus ORDER BY id')
+    rows = cursor.fetchall()
+    
+    if IS_POSTGRES:
+        menus = [dict(zip([column[0] for column in cursor.description], row)) for row in rows]
+    else:
+        menus = [dict(row) for row in rows]
+        
+    cursor.close()
     conn.close()
-    return [dict(row) for row in rows]
+    return menus
 
-# ----- 添加菜品 -----
 def add_menu_item(name, price):
     conn = get_db()
-    conn.execute('INSERT INTO menus (name, price) VALUES (?, ?)', (name, price))
+    cursor = conn.cursor()
+    p = "%s" if IS_POSTGRES else "?"
+    cursor.execute(f'INSERT INTO menus (name, price) VALUES ({p}, {p})', (name, price))
     conn.commit()
+    cursor.close()
     conn.close()
 
-# ----- 删除菜品 (按 ID) -----
 def delete_menu_item(item_id):
     conn = get_db()
-    conn.execute('DELETE FROM menus WHERE id = ?', (item_id,))
+    cursor = conn.cursor()
+    p = "%s" if IS_POSTGRES else "?"
+    cursor.execute(f'DELETE FROM menus WHERE id = {p}', (item_id,))
     conn.commit()
+    cursor.close()
     conn.close()
 
-# ----- 搜索菜名 (模糊匹配) -----
 def search_menus_by_name(keyword):
     conn = get_db()
-    rows = conn.execute(
-        'SELECT * FROM menus WHERE name LIKE ? ORDER BY id',
-        (f'%{keyword}%',)        
-    ).fetchall()
+    cursor = conn.cursor()
+    p = "%s" if IS_POSTGRES else "?"
+    cursor.execute(f'SELECT * FROM menus WHERE name LIKE {p} ORDER BY id', (f'%{keyword}%',))
+    rows = cursor.fetchall()
+    
+    if IS_POSTGRES:
+        menus = [dict(zip([column[0] for column in cursor.description], row)) for row in rows]
+    else:
+        menus = [dict(row) for row in rows]
+    cursor.close()
     conn.close()
-    return [dict(row) for row in rows]
+    return menus
 
-# ----- 按价格区间搜索 -----
 def search_menus_by_price(min_price, max_price):
     conn = get_db()
-    rows = conn.execute(
-        'SELECT * FROM menus WHERE price >= ? AND price <= ? ORDER BY price',
-        (min_price, max_price)
-    ).fetchall()
+    cursor = conn.cursor()
+    p = "%s" if IS_POSTGRES else "?"
+    cursor.execute(f'SELECT * FROM menus WHERE price >= {p} AND price <= {p} ORDER BY price', (min_price, max_price))
+    rows = cursor.fetchall()
+    
+    if IS_POSTGRES:
+        menus = [dict(zip([column[0] for column in cursor.description], row)) for row in rows]
+    else:
+        menus = [dict(row) for row in rows]
+    cursor.close()
     conn.close()
-    return [dict(row) for row in rows]
+    return menus
 
-# ----- 程序启动时建表 -----
+# 启动时建表
 init_db()
