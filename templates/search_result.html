@@ -8,7 +8,16 @@
     {% if results %}
         <ul>
             {% for m in results %}
-                <li>{{ m['name'] }} - RM{{ "%.2f"|format(m['price']) }}</li>
+                <li>
+                    <strong>{{ m['name'] }}</strong> -
+                    数量：
+                    {% if m['quantity'] < 10 %}
+                        <span class="low-stock">{{ m['quantity'] }}（库存不足）</span>
+                    {% else %}
+                        {{ m['qauntity'] }}
+                    {% endif %} |
+                    单价: RM{{ "%.2f"|format(m['pricce']) }}
+                </li>
             {% endfor %}
         </ul>
     {% else %}
@@ -16,5 +25,5 @@
     {% endif %}
 
     <br>
-    <a href="/menus">⬅️ 返回菜单</a>
+    <a href="/restaurant">返回库存</a>
 {% endblock %}
