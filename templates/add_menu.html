@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}添加菜品{% endblock %}
+
+{% block content %}
+    <div class="card p-4 shadow-sm">
+        <h3>添加菜品</h3>
+        <form action="/add" method="get">
+            <div class="mb-3">
+                <label class="form-label">菜品名称</label>
+                <input type="text" name="name" class="form-control" required>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">数量</label>
+                    <input type="number" name="quantity" class="form-control" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">单价 (RM)</label>
+                    <input type="number" step="0.10" name="price" class="form-control" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success">保存菜品</button>
+            <a href="/restaurant" class="btn btn-secondary">取消</a>
+        </form>
+    </div>
+{% endblock %}

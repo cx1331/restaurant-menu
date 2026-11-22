@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}餐厅菜单{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">菜单列表</h2>
+
+    <!-- 搜索和筛选表单 -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3 mb-md-0">
+            <form action="/search" method="get" class="d-flex">
+                <input type="text" name="q" class="form-control me-2" placeholder="输入菜品名搜索...">
+                <!-- 增加了 white-space: nowrap; 强制按钮文字不换行！ -->
+                <button type="submit" class="btn btn-primary" style="white-space: nowrap;">搜索</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 菜品表格 -->
+    {% if menus %}
+    <div class="table-responsive shadow-sm">
+        <table class="table table-bordered table-hover align-middle bg-white">
+            <thead class="table-dark">
+                <tr>
+                    <th>菜品名</th>
+                    <th>数量</th>
+                    <th>单价</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in menus %}
+                <tr>
+                    <td>{{ m['name'] }}</td>
+                    <td>
+                        {% if m['quantity'] < 10 %}
+                            <span class="badge bg-danger">{{ m['quantity'] }} （库存不足）</span>
+                        {% else %}
+                            {{ m['quantity'] }}
+                        {% endif %}
+                    </td>
+                    <td>RM{{ "%.2f"|format(m['price']) }}</td>
+                    <td>
+                        <a href="/update_stock_form/{{ m['id'] }}" class="btn btn-sm btn-outline-success">修改</a>
+                        <a href="/delete/{{ m['id'] }}" class="btn btn-sm btn-outline-danger">删除</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">库存为空，请添加菜品。</div>
+    {% endif %}
+
+    <!-- 底部按钮 -->
+     <div class="mt-4">
+        <a href="/export" class="btn btn-success">导出 Excel (CSV)</a>
+        <a href="/add_form" class="btn btn-primary">添加菜品</a>
+     </div>
+</div>
+{% endblock %}

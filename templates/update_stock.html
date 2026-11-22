@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}修改库存{% endblock %}
+
+{% block content %}
+    <h2>修改库存</h2>
+
+    <div class="form-card">
+        <p><strong>菜品: </strong>{{ menu['name'] }}</p>
+        <p><strong>当前库存: </strong>{{ menu['quantity'] }}</p>
+
+        <form action="/update_stock" method="get">
+            <input type="hidden" name="id" value="{{ menu['id'] }}">
+            <label>新的库存数量: </label>
+            <input type="text" name="quantity" value="{{ menu['quantity'] }}">
+            <input type="submit" value="保存">
+        </form>
+    </div>
+
+    <br>
+    <a href="/restaurant">返回库存</a>
+{% endblock %}
